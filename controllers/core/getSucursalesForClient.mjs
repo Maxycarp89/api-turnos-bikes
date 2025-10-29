@@ -15,9 +15,7 @@ const getSucursal = async (req, res) => {
     const uriDecode = decodeURI(`USER_CODE eq '${userName}'`);
   
     const result = await clienteAxios.get(
-      `/b1s/v1/sml.svc/YUH_SUCUSUARIO?$select=BPLId,BPLName,Street,U_NAME,AliasName&$filter=(${uriDecode} and( BPLId eq 71 or BPLId eq 72 or BPLId eq 70 or BPLId eq 61 or BPLId eq 60 or BPLId eq 103 or BPLId eq 129 or BPLId eq 95 or BPLId eq 62 
-      or BPLId eq 101 or BPLId eq 102 or BPLId eq 121 or BPLId eq 139 or BPLId eq 76 or BPLId eq 129 or BPLId eq 85 or BPLId eq 86 or BPLId eq 92 or BPLId eq 73
-)) &$orderby=BPLId`,
+      `/b1s/v1/sml.svc/YUH_SUCUSUARIO?$select=BPLId,BPLName,Street,U_NAME,AliasName&$filter=(${uriDecode} and( BPLId eq 68 or BPLId eq 81 or BPLId eq 128)) &$orderby=BPLId`,
       {
         headers: {
           Cookie: loginData.headers["set-cookie"][0],
