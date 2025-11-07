@@ -26,7 +26,8 @@ const createAppoinment = async (req, res) => {
     U_dni,
     U_BPLName,
     U_internalSN,
-    U_customer,
+    U_customer, 
+    U_ProSubType
   } = req.body;
 
   try {
@@ -75,6 +76,7 @@ const createAppoinment = async (req, res) => {
         U_BPLName,
         U_internalSN,
         U_customer,
+        U_ProSubType
       },
       {
         headers: {
@@ -128,11 +130,23 @@ const createAppoinment = async (req, res) => {
     });
 
     // Configurar detalles del correo
-    const mailOptions = {
+     const mailOptions = {
       from: 'turnos-services@yuhmak.com.ar',
       to: U_Email.toLowerCase(),
       subject: 'Confirmación de Turno',
-      text: `Estimado ${U_custmrName},\n\nSu turno ha sido creado con éxito para el ${formatDate(U_Fecha)} a las ${U_StartTime} en la sucursal ${U_BPLName}.\n\nSaludos,\nYuhmak-Service`
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <img src="cid:yuhmakLogo" style="width: 200px; margin-bottom: 20px;"/>
+          <p>Estimado ${U_custmrName},</p>
+          <p>Su turno ha sido creado con éxito para el ${formatDate(U_Fecha)} a las ${U_StartTime} en la sucursal ${U_BPLName}.</p>
+          <p>Saludos,<br>Yuhmak-Service</p>
+        </div>
+      `,
+      attachments: [{
+        filename: 'logo.png',
+        path: './utils/logo.png',
+        cid: 'yuhmakLogo'
+      }]
     };
 
     // Enviar el correo y capturar la respuesta
