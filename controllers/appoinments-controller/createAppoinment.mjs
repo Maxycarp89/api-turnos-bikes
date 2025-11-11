@@ -1,7 +1,10 @@
 import { clienteAxios } from "../../utils/clienteAxios.mjs";
 import nodemailer from "nodemailer";
+import getBussinessPartner from "../core/bussines-partner.controller/getBussinessPartner.mjs";
+import createClient from "../core/bussines-partner.controller/CreateClient.mjs";
 
 const createAppoinment = async (req, res) => {
+  // Login SAP
   const loginData = await clienteAxios.post("/b1s/v1/Login", {
     UserName: process.env.NODE_MASTER_USER,
     CompanyDB: process.env.NODE_DATABASE_SAP,
@@ -26,11 +29,87 @@ const createAppoinment = async (req, res) => {
     U_dni,
     U_BPLName,
     U_internalSN,
-    U_customer, 
-    U_ProSubType
+    U_ProSubType,
+    U_TipoOrigen,
+    ZipCode,
   } = req.body;
 
-  try {
+  let CardCode = null;
+  try {  
+    let clienteEncontrado = null;
+    try {
+      const { data } = await clienteAxios.get(
+        `/b1s/v1/BusinessPartners?$select=FederalTaxID,CardCode,CardName,Address,FederalTaxID,Cellular,City,Country,EmailAddress&$filter=contains(FederalTaxID, '${U_dni}')`,
+        {
+          headers: {
+            Cookie: loginData.headers["set-cookie"][0],
+          },
+        }
+      );
+      if (data.value && data.value.length > 0) {
+        clienteEncontrado = data.value[0];
+        CardCode = clienteEncontrado.CardCode;
+      }
+    } catch (e) {
+      console.log("Error al buscar cliente:", e);
+    }
+
+
+    // Si no se encontró, crear cliente
+    if (!CardCode) {
+      try {
+        const createResp = await clienteAxios.post(
+          `/b1s/v1/BusinessPartners`,
+          {
+            CardName: U_custmrName,
+            FederalTaxID: U_dni,
+            Cellular: U_Telephone,
+            Address: U_Street,
+            EmailAddress: U_Email,
+            Series: 146,
+            County:null,
+            City: U_city,
+            U_B1SYS_VATCtg: "CF",
+            ZipCode: ZipCode,
+            U_B1SYS_FiscIdType: "96",
+          },
+          {
+            headers: {
+              Cookie: loginData.headers["set-cookie"][0],
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        console.log("Respuesta de creación de cliente:", createResp.data, createResp.status);
+        if (createResp.status === 201) {
+          const { data } = await clienteAxios.get(
+            `/b1s/v1/BusinessPartners?$select=FederalTaxID,CardCode&$filter=contains(FederalTaxID, '${U_dni}')`,
+            {
+              headers: {
+                Cookie: loginData.headers["set-cookie"][0],
+              },
+            }
+          );
+          if (data.value && data.value.length > 0) {
+            CardCode = data.value[0].CardCode;
+            console.log("CardCode encontrado tras crear cliente:", CardCode);
+          }
+        }
+        if (!CardCode) {
+          console.error("No se pudo obtener el CardCode tras crear el cliente. Respuesta:", createResp.data, createResp.headers);
+        }
+      } catch (e) {
+        console.error("Error al crear cliente-->", e);
+        return res.status(400).send({ error: "No se pudo crear el cliente automáticamente.", detalle: e?.response?.data || e.message });
+      }
+    }
+
+    if (!CardCode) {
+      return res
+        .status(400)
+        .send({ error: "No se pudo obtener el código de cliente (CardCode)." });
+    }
+
     // Consulta previa para verificar disponibilidad
     const admTurnoData = await clienteAxios.get(
       `/b1s/v1/ADMTURNOS?$filter=U_Fecha eq '${U_Fecha}' and U_BPLId eq ${U_BPLId}`,
@@ -46,11 +125,14 @@ const createAppoinment = async (req, res) => {
     const admTurno = admTurnoData.data.value[0];
     let horarios = JSON.parse(admTurno.U_HorarioRecep.replace(/'/g, '"'));
 
-    const horarioToCheck = horarios.find(horario => horario.hs === U_StartTime);
+    const horarioToCheck = horarios.find(
+      (horario) => horario.hs === U_StartTime
+    );
 
     if (horarioToCheck.ocupado >= horarioToCheck.cantrecep) {
       return res.status(400).send({
-        error: "El turno solicitado ya no está disponible. Seleccione otro horario u otra fecha",
+        error:
+          "El turno solicitado ya no está disponible. Seleccione otro horario u otra fecha",
       });
     }
 
@@ -75,8 +157,9 @@ const createAppoinment = async (req, res) => {
         U_dni,
         U_BPLName,
         U_internalSN,
-        U_customer,
-        U_ProSubType
+        U_customer: CardCode,
+        U_ProSubType,
+        U_TipoOrigen,
       },
       {
         headers: {
@@ -110,61 +193,65 @@ const createAppoinment = async (req, res) => {
     );
 
     function formatDate(dateString) {
-      const [year, month, day] = dateString.split('-');
+      const [year, month, day] = dateString.split("-");
       return `${day}/${month}/${year}`;
     }
 
     // Configurar transporte de correo para IceWarp WebClient
     const transporter = nodemailer.createTransport({
-      host: 'webmail.yuhmak.com.ar', 
-      port: 366, 
-      secure: false, 
+      host: "webmail.yuhmak.com.ar",
+      port: 366,
+      secure: false,
       tls: {
-        rejectUnauthorized: false
+        rejectUnauthorized: false,
       },
       auth: {
-        user: 'turnos-services@yuhmak.com.ar',
-        pass: 'hda41se@36re-36',
+        user: "turnos-services@yuhmak.com.ar",
+        pass: "hda41se@36re-36",
       },
-      debug: true
+      debug: true,
     });
 
     // Configurar detalles del correo
-     const mailOptions = {
-      from: 'turnos-services@yuhmak.com.ar',
+    const mailOptions = {
+      from: "turnos-services@yuhmak.com.ar",
       to: U_Email.toLowerCase(),
-      subject: 'Confirmación de Turno',
+      subject: "Confirmación de Turno",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <img src="cid:yuhmakLogo" style="width: 200px; margin-bottom: 20px;"/>
           <p>Estimado ${U_custmrName},</p>
-          <p>Su turno ha sido creado con éxito para el ${formatDate(U_Fecha)} a las ${U_StartTime} en la sucursal ${U_BPLName}.</p>
+          <p>Su turno ha sido creado con éxito para el ${formatDate(
+            U_Fecha
+          )} a las ${U_StartTime} en la sucursal ${U_BPLName}.</p>
           <p>Saludos,<br>Yuhmak-Service</p>
         </div>
       `,
-      attachments: [{
-        filename: 'logo.png',
-        path: './utils/logo.png',
-        cid: 'yuhmakLogo'
-      }]
+      attachments: [
+        {
+          filename: "logo.png",
+          path: "./utils/logo.png",
+          cid: "yuhmakLogo",
+        },
+      ],
     };
 
     // Enviar el correo y capturar la respuesta
     transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
-        console.log('Error al enviar correo:', error);
+        console.log("Error al enviar correo:", error);
         return res.status(400).send({
           error: "Ocurrió un problema al crear el turno y enviar el correo.",
         });
       }
-     
+
       res.status(200).send({ resp: "Turno creado con éxito y correo enviado" });
     });
-
   } catch (error) {
     console.log(error.message);
     res.status(400).send({
-      error: "Ocurrió un problema al crear el turno. Esto puede deberse a que el turno ya se haya creado.",
+      error:
+        "Ocurrió un problema al crear el turno. Esto puede deberse a que el turno ya se haya creado.",
     });
   }
 };

@@ -30,7 +30,7 @@ const getShiftExist = async (req, res) => {
         );
 
         const data = resultShiftExist.data.value;
-        console.log(data);
+        
 
         if (data.length === 0) {
             return res.status(200).json({ exists: false, message: "No se encontraron turnos cargados por el cliente para esa fecha" });

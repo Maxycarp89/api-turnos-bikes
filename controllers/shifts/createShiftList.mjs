@@ -18,7 +18,7 @@ const createShiftList = async (req, res) => {
                 U_HorarioRecep: JSON.parse(e.U_HorarioRecep)
             }
         })
-        console.log(createdMaped.U_HorarioRecep)
+        
         return res.status(200).send(createdMaped)
     } catch (error) {
         return res.status(400).send(error)

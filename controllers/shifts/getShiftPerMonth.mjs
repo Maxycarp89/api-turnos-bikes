@@ -16,10 +16,10 @@ endOfPeriod.setDate(startOfMonth.getDate() + 60);  // 30 días después de start
 const formattedStartOfMonth = startOfMonth.toISOString().split("T")[0];
 const formattedEndOfPeriod = endOfPeriod.toISOString().split("T")[0];
 
-console.log(formattedStartOfMonth, formattedEndOfPeriod);
+//console.log(formattedStartOfMonth, formattedEndOfPeriod);
 
   const {BPLId} = req.query;  
-  console.log(BPLId); 
+  //console.log(BPLId); 
   
   const loginData = await clienteAxios.post("/b1s/v1/Login", {
     UserName: process.env.NODE_MASTER_USER,
@@ -38,7 +38,7 @@ console.log(formattedStartOfMonth, formattedEndOfPeriod);
         },
       }
     );
-    console.log(data);
+    //console.log(data);
     if (!data.value.length) return res.send(data.value);
     const dataMaped = data.value.map((e) => {
       return {
