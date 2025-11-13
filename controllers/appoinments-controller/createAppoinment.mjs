@@ -206,15 +206,15 @@ const createAppoinment = async (req, res) => {
         rejectUnauthorized: false,
       },
       auth: {
-        user: "turnos-services@yuhmak.com.ar",
-        pass: "hda41se@36re-36",
+        user: "yuhmakservicesbikes@yuhmak.com.ar",
+        pass: "Yuhmak01",
       },
       debug: true,
     });
 
     // Configurar detalles del correo
     const mailOptions = {
-      from: "turnos-services@yuhmak.com.ar",
+      from: "yuhmakservicesbikes@yuhmak.com.ar",
       to: U_Email.toLowerCase(),
       subject: "Confirmación de Turno",
       html: `
@@ -241,7 +241,7 @@ const createAppoinment = async (req, res) => {
       if (error) {
         console.log("Error al enviar correo:", error);
         return res.status(400).send({
-          error: "Ocurrió un problema al crear el turno y enviar el correo.",
+          error: " El turno fue creado pero hubo un error al enviar el correo electrónico.",
         });
       }
 
