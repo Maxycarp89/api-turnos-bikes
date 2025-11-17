@@ -6,7 +6,7 @@ const shipmentEmision = async (req, res) => {
   const { BPLName } = req.query;
   try {
     const { data } = await clienteAxios.get(
-      `/b1s/v1/sml.svc/YUH_SUCUSUARIO?$filter=BPLName eq '${BPLName}'&$select=BPLId`,
+      `/b1s/v1/sml.svc/YUH_SUCUSUARIO2025?$filter=BPLName eq '${BPLName}'&$select=BPLId`,
       {
         headers: {
           Cookie: `${cookies}`,

@@ -22,7 +22,7 @@ export const login = async (req, res) => {
         currentAccount[0]
       );
       const rolUser = await clienteAxios.get(
-        `/b1s/v1/sml.svc/YUH_UNIDADNEGOCIOUSUARIO?$filter=USER_CODE eq '${UserName}'`,
+        `/b1s/v1/sml.svc/YUH_UNIDADNEGOCIOUSUARIO2025?$filter=USER_CODE eq '${UserName}'`,
         {
           headers: {
             Cookie: loginData.headers["set-cookie"][0],
@@ -30,7 +30,7 @@ export const login = async (req, res) => {
         }
       );
       const offices = await clienteAxios.get(
-        `/b1s/v1/sml.svc/YUH_SUCUSUARIO?$select=BPLId, BPLName, U_NAME,AliasName&$filter=USER_CODE eq '${UserName}'&$orderby=BPLId`,
+        `/b1s/v1/sml.svc/YUH_SUCUSUARIO2025?$select=BPLId, BPLName, U_NAME,AliasName&$filter=USER_CODE eq '${UserName}'&$orderby=BPLId`,
         {
           headers: {
             Cookie: loginData.headers["set-cookie"][0],
@@ -70,7 +70,7 @@ export const login = async (req, res) => {
             CompanyDB: process.env.NODE_DATABASE_SAP,
           });
           const rolUser = await clienteAxios.get(
-            `/b1s/v1/sml.svc/YUH_UNIDADNEGOCIOUSUARIO?$filter=USER_CODE eq '${UserName}'`,
+            `/b1s/v1/sml.svc/YUH_UNIDADNEGOCIOUSUARIO2025?$filter=USER_CODE eq '${UserName}'`,
             {
               headers: {
                 Cookie: loginData.headers["set-cookie"][0],
@@ -78,7 +78,7 @@ export const login = async (req, res) => {
             }
           );
           const offices = await clienteAxios.get(
-            `/b1s/v1/sml.svc/YUH_SUCUSUARIO?$select=BPLId, BPLName, U_NAME,AliasName&$filter=USER_CODE eq '${UserName}'&$orderby=BPLId`,
+            `/b1s/v1/sml.svc/YUH_SUCUSUARIO2025?$select=BPLId, BPLName, U_NAME,AliasName&$filter=USER_CODE eq '${UserName}'&$orderby=BPLId`,
             {
               headers: {
                 Cookie: loginData.headers["set-cookie"][0],
@@ -122,7 +122,7 @@ export const login = async (req, res) => {
           CompanyDB: process.env.NODE_DATABASE_SAP,
         });
         const rolUser = await clienteAxios.get(
-          `/b1s/v1/sml.svc/YUH_UNIDADNEGOCIOUSUARIO?$filter=USER_CODE eq '${UserName}'`,
+          `/b1s/v1/sml.svc/YUH_UNIDADNEGOCIOUSUARIO2025?$filter=USER_CODE eq '${UserName}'`,
           {
             headers: {
               Cookie: loginData.headers["set-cookie"][0],
@@ -130,7 +130,7 @@ export const login = async (req, res) => {
           }
         );
         const offices = await clienteAxios.get(
-          `/b1s/v1/sml.svc/YUH_SUCUSUARIO?$select=BPLId, BPLName, U_NAME,AliasName&$filter=USER_CODE eq '${UserName}'&$orderby=BPLId`,
+          `/b1s/v1/sml.svc/YUH_SUCUSUARIO2025?$select=BPLId, BPLName, U_NAME,AliasName&$filter=USER_CODE eq '${UserName}'&$orderby=BPLId`,
           {
             headers: {
               Cookie: loginData.headers["set-cookie"][0],

@@ -8,7 +8,7 @@ const getSucu = async (req, res) => {
   let sucur = [];
   try {
     const result = await clienteAxios.get(
-      `/b1s/v1/sml.svc/YUH_SUCUSUARIO?$select=BPLId, BPLName, U_NAME,AliasName&$filter=${uriDecode}&$orderby=BPLId`,
+      `/b1s/v1/sml.svc/YUH_SUCUSUARIO2025?$select=BPLId, BPLName, U_NAME,AliasName&$filter=${uriDecode}&$orderby=BPLId`,
       {
         headers: {
           Cookie: `${cookies}`,
