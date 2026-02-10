@@ -197,24 +197,26 @@ const createAppoinment = async (req, res) => {
       return `${day}/${month}/${year}`;
     }
 
-    // Configurar transporte de correo para IceWarp WebClient
-    const transporter = nodemailer.createTransport({
-      host: "webmail.yuhmak.com.ar",
-      port: 366,
-      secure: false,
-      tls: {
-        rejectUnauthorized: false,
-      },
-      auth: {
-        user: "yuhmakservicesbikes@yuhmak.com.ar",
-        pass: "Yuhmak01",
-      },
-      debug: true,
-    });
+    // Función para crear transporter con credenciales específicas
+    const createTransporter = (user, pass) => {
+      return nodemailer.createTransport({
+        host: "webmail.yuhmak.com.ar",
+        port: 366,
+        secure: false,
+        tls: {
+          rejectUnauthorized: false,
+        },
+        auth: {
+          user,
+          pass,
+        },
+        debug: true,
+      });
+    };
 
-    // Configurar detalles del correo
-    const mailOptions = {
-      from: "yuhmakservicesbikes@yuhmak.com.ar",
+    // Función para crear opciones de correo
+    const createMailOptions = (fromEmail) => ({
+      from: fromEmail,
       to: U_Email.toLowerCase(),
       subject: "Confirmación de Turno",
       html: `
@@ -234,19 +236,47 @@ const createAppoinment = async (req, res) => {
           cid: "yuhmakLogo",
         },
       ],
+    });
+
+    // Función para enviar correo con promesa
+    const sendMailAsync = (transporter, mailOptions) => {
+      return new Promise((resolve, reject) => {
+        transporter.sendMail(mailOptions, (error, info) => {
+          if (error) reject(error);
+          else resolve(info);
+        });
+      });
     };
 
-    // Enviar el correo y capturar la respuesta
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        console.log("Error al enviar correo:", error);
+    // Intentar enviar con la primera casilla
+    try {
+      const transporter1 = createTransporter(
+        process.env.NODE_USER_MAILING,
+        process.env.NODE_PASSWORD_MAILING
+      );
+      const mailOptions1 = createMailOptions(process.env.NODE_USER_MAILING);
+      await sendMailAsync(transporter1, mailOptions1);
+      res.status(200).send({ resp: "Turno creado con éxito y correo enviado" });
+    } catch (error1) {
+      console.log("Error al enviar correo con casilla principal:", error1);
+      
+      // Intentar con la segunda casilla (fallback)
+      try {
+        const transporter2 = createTransporter(
+          process.env.NODE_USER_MAILING_BIKES,
+          process.env.NODE_PASSWORD_MAILING_BIKES
+        );
+        const mailOptions2 = createMailOptions(process.env.NODE_USER_MAILING_BIKES);
+        await sendMailAsync(transporter2, mailOptions2);
+        console.log("Correo enviado exitosamente con casilla de respaldo");
+        res.status(200).send({ resp: "Turno creado con éxito y correo enviado" });
+      } catch (error2) {
+        console.log("Error al enviar correo con casilla de respaldo:", error2);
         return res.status(400).send({
-          error: " El turno fue creado pero hubo un error al enviar el correo electrónico.",
+          error: "El turno fue creado pero hubo un error al enviar el correo electrónico.",
         });
       }
-
-      res.status(200).send({ resp: "Turno creado con éxito y correo enviado" });
-    });
+    }
   } catch (error) {
     console.log(error.message);
     res.status(400).send({
