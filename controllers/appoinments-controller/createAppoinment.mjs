@@ -192,10 +192,11 @@ const createAppoinment = async (req, res) => {
       }
     );
 
-    function formatDate(dateString) {
-      const [year, month, day] = dateString.split("-");
-      return `${day}/${month}/${year}`;
-    }
+    function formatDate(isoDate) {
+    const dateOnly = isoDate.split("T")[0];
+    const [y, m, d] = dateOnly.split("-");
+    return `${d}/${m}/${y}`;
+  }
 
     // Función para crear transporter con credenciales específicas
     const createTransporter = (user, pass) => {
